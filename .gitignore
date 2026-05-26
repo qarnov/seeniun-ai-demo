@@ -1,0 +1,10 @@
+.env
+venv/
+backend/venv/
+__pycache__/
+*.pyc
+*.pyo
+node_modules/
+frontend/dist/
+.DS_Store
+*.faiss
