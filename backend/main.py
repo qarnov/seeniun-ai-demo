@@ -20,6 +20,8 @@ load_dotenv()
 
 # Import RAG — chain is built lazily on first request
 from rag import answer as rag_answer
+from qualifier import qualify as qualify_lead
+from deals import get_deals
 
 # ── App setup ────────────────────────────────────────────────────────────────
 
@@ -46,6 +48,21 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     answer: str
 
+class QualifyRequest(BaseModel):
+    message: str
+    history: list[Message] = []
+
+class Captured(BaseModel):
+    budget: str | None = None
+    area: str | None = None
+    timeline: str | None = None
+
+class QualifyResponse(BaseModel):
+    reply: str
+    captured: Captured
+    qualified: bool
+    bookingUrl: str | None = None
+
 
 # ── API routes ────────────────────────────────────────────────────────────────
 
@@ -69,6 +86,28 @@ async def chat(req: ChatRequest):
             status_code=500,
             detail="I'm having trouble connecting to the AI. Please check your API key or try again.",
         )
+
+
+@app.post("/api/qualify", response_model=QualifyResponse)
+async def qualify(req: QualifyRequest):
+    if not req.message.strip():
+        raise HTTPException(status_code=400, detail="Message cannot be empty.")
+
+    try:
+        history = [m.model_dump() for m in req.history]
+        result = await qualify_lead(req.message, history)
+        return QualifyResponse(**result)
+    except Exception as e:
+        print(f"Qualifier error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="I'm having trouble connecting to the AI. Please check your API key or try again.",
+        )
+
+
+@app.get("/api/deals")
+def deals():
+    return get_deals()
 
 
 # ── Serve React frontend (built by Vite) ──────────────────────────────────────

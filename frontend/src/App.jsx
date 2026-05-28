@@ -1,6 +1,7 @@
 import { useState } from "react";
 import InvestorChatbot from "./components/InvestorChatbot.jsx";
-import ComingSoon from "./components/ComingSoon.jsx";
+import LeadQualifier from "./components/LeadQualifier.jsx";
+import DealTracker from "./components/DealTracker.jsx";
 
 const TABS = [
   {
@@ -13,13 +14,13 @@ const TABS = [
     id: "qualifier",
     label: "Lead Qualifier",
     icon: "🎯",
-    badge: "SOON",
+    badge: "LIVE",
   },
   {
     id: "tracker",
     label: "Deal Tracker",
     icon: "📊",
-    badge: "SOON",
+    badge: "LIVE",
   },
 ];
 
@@ -38,7 +39,7 @@ export default function App() {
               <div style={styles.logoTagline}>AI Investment Suite · Dubai</div>
             </div>
           </div>
-          <div style={styles.poweredBy}>Powered by Gemini 1.5 Flash</div>
+          <div style={styles.poweredBy}>Powered by Gemini 2.5 Flash</div>
         </div>
 
         {/* ── Tab bar ── */}
@@ -75,32 +76,8 @@ export default function App() {
       {/* ── Tab content ── */}
       <main style={styles.main}>
         {activeTab === "chatbot" && <InvestorChatbot />}
-        {activeTab === "qualifier" && (
-          <ComingSoon
-            icon="🎯"
-            title="Lead Qualifier Bot"
-            description="Qualifies investors by budget, area preference, and timeline. Ends every conversation with a Calendly booking link — so no lead slips through after hours."
-            features={[
-              "Budget & timeline qualification flow",
-              "Area + property type matching",
-              "Auto Calendly booking link on completion",
-              "Saves broker 2–3 hours/day on unqualified calls",
-            ]}
-          />
-        )}
-        {activeTab === "tracker" && (
-          <ComingSoon
-            icon="📊"
-            title="Post-Sale Deal Tracker"
-            description="Clients see their deal journey live. Broker updates a Google Sheet → n8n pushes it to this dashboard. No more 'what's happening with my deal?' calls."
-            features={[
-              "Live 5-stage deal pipeline (Reservation → Handover)",
-              "Google Sheets as the CRM backend",
-              "n8n automation pushes updates in real time",
-              "Client-facing link — no login required",
-            ]}
-          />
-        )}
+        {activeTab === "qualifier" && <LeadQualifier />}
+        {activeTab === "tracker" && <DealTracker />}
       </main>
     </div>
   );
