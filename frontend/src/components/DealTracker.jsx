@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { colors, gradients } from "../theme";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -17,20 +18,28 @@ function fmtDate(iso) {
 
 function DealCard({ deal, stages }) {
   const [open, setOpen] = useState(false);
+  const [hover, setHover] = useState(false);
   const isHandover = deal.stage === stages.length - 1;
   const pct = (deal.stage / (stages.length - 1)) * 100;
 
   return (
-    <div style={styles.card}>
+    <div
+      style={{
+        ...styles.card,
+        borderColor: hover || open ? colors.bronze : colors.border,
+      }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
       <div style={styles.cardTop} onClick={() => setOpen((o) => !o)}>
-        <div style={{ minWidth: 0 }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
           <div style={styles.cardClientRow}>
             <span style={styles.cardId}>{deal.id}</span>
             <span style={styles.cardClient}>{deal.client}</span>
           </div>
           <div style={styles.cardProperty}>{deal.property}</div>
           <div style={styles.cardMeta}>
-            {deal.developer} · {fmtAED(deal.value_aed)}
+            {deal.developer} <span style={styles.dot}>·</span> {fmtAED(deal.value_aed)}
           </div>
         </div>
         <div style={styles.cardRight}>
@@ -42,19 +51,17 @@ function DealCard({ deal, stages }) {
           >
             {stages[deal.stage].icon} {stages[deal.stage].label}
           </span>
-          <span style={styles.chevron}>{open ? "▲" : "▼"}</span>
+          <span style={{ ...styles.chevron, transform: open ? "rotate(180deg)" : "none" }}>▾</span>
         </div>
       </div>
 
-      {/* Mini pipeline progress */}
       <div style={styles.miniTrack}>
         <div
           style={{
             ...styles.miniFill,
             width: `${pct}%`,
-            background: isHandover
-              ? "linear-gradient(90deg,#16a34a,#22c55e)"
-              : "linear-gradient(90deg,#0a3d7a,#0a5540)",
+            background: isHandover ? gradients.bronze : gradients.bronze,
+            opacity: isHandover ? 1 : 0.85,
           }}
         />
         {stages.map((s, i) => (
@@ -63,7 +70,8 @@ function DealCard({ deal, stages }) {
             style={{
               ...styles.miniNode,
               left: `${(i / (stages.length - 1)) * 100}%`,
-              background: i <= deal.stage ? (isHandover ? "#16a34a" : "#0a3d7a") : "#d1d5db",
+              background: i <= deal.stage ? colors.bronze : colors.border,
+              boxShadow: i <= deal.stage ? "0 0 6px rgba(184,149,106,0.5)" : "none",
             }}
             title={s.label}
           />
@@ -71,7 +79,7 @@ function DealCard({ deal, stages }) {
       </div>
 
       <div style={styles.nextRow}>
-        <span style={styles.nextLabel}>Next:</span>
+        <span style={styles.nextLabel}>Next</span>
         <span style={styles.nextText}>{deal.next_milestone}</span>
         <span style={styles.updated}>Updated {fmtDate(deal.updated)}</span>
       </div>
@@ -133,31 +141,38 @@ export default function DealTracker() {
   return (
     <div style={styles.scroll}>
       <div style={styles.inner}>
-        {/* Header */}
         <div style={styles.head}>
           <div>
-            <h2 style={styles.title}>Post-Sale Deal Tracker</h2>
+            <div style={styles.eyebrow}>03 · Post-Sale Tracker</div>
+            <h2 className="serif" style={styles.title}>
+              Live deal pipeline
+            </h2>
             <p style={styles.subtitle}>
-              Live client-facing pipeline · brokers update once, clients always see the truth
+              Brokers update once, clients always see the truth — from reservation to handover.
             </p>
           </div>
           <div style={styles.liveTag}>
-            <span style={styles.liveDot} /> Live
+            <span style={styles.liveDot} /> LIVE
           </div>
         </div>
 
-        {/* Summary stats */}
         <div style={styles.statRow}>
           <div style={styles.stat}>
-            <div style={styles.statValue}>{summary.total_deals}</div>
+            <div className="serif" style={styles.statValue}>
+              {summary.total_deals}
+            </div>
             <div style={styles.statLabel}>Active Deals</div>
           </div>
           <div style={styles.stat}>
-            <div style={styles.statValue}>{fmtAED(summary.total_value_aed)}</div>
+            <div className="serif" style={styles.statValue}>
+              {fmtAED(summary.total_value_aed)}
+            </div>
             <div style={styles.statLabel}>Pipeline Value</div>
           </div>
           <div style={styles.stat}>
-            <div style={styles.statValue}>{summary.handovers_complete}</div>
+            <div className="serif" style={styles.statValue}>
+              {summary.handovers_complete}
+            </div>
             <div style={styles.statLabel}>Handovers Done</div>
           </div>
         </div>
@@ -167,14 +182,17 @@ export default function DealTracker() {
           {stages.map((s, i) => (
             <div key={s.key} style={styles.funnelStage}>
               <div style={styles.funnelIcon}>{s.icon}</div>
-              <div style={styles.funnelCount}>{summary.by_stage[i]}</div>
+              <div className="serif" style={styles.funnelCount}>
+                {summary.by_stage[i]}
+              </div>
               <div style={styles.funnelLabel}>{s.label}</div>
               {i < stages.length - 1 && <div style={styles.funnelArrow}>→</div>}
             </div>
           ))}
         </div>
 
-        {/* Deal list */}
+        <div style={styles.sectionLabel}>The Book</div>
+
         <div style={styles.list}>
           {deals.map((d) => (
             <DealCard key={d.id} deal={d} stages={stages} />
@@ -194,150 +212,291 @@ export default function DealTracker() {
 // ── Styles ─────────────────────────────────────────────────────────────────
 
 const styles = {
-  scroll: { flex: 1, overflowY: "auto", background: "#f0f2f5" },
-  inner: { maxWidth: 860, margin: "0 auto", padding: "24px 20px 48px" },
-  center: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", background: "#f0f2f5" },
-  loading: { color: "#6b7280", fontSize: 14 },
+  scroll: { flex: 1, overflowY: "auto", background: colors.black },
+  inner: { maxWidth: 980, margin: "0 auto", padding: "40px 28px 60px" },
+  center: {
+    flex: 1,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: colors.black,
+  },
+  loading: {
+    color: colors.bronze,
+    fontSize: 12,
+    letterSpacing: "0.3em",
+    textTransform: "uppercase",
+  },
   errorBanner: {
-    background: "#fef2f2",
-    border: "1px solid #fecaca",
-    color: "#dc2626",
-    borderRadius: 10,
+    background: colors.dangerBg,
+    border: `1px solid ${colors.danger}`,
+    color: colors.danger,
     padding: "12px 16px",
     fontSize: 13,
   },
 
-  head: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 },
-  title: { fontSize: 22, fontWeight: 700, color: "#0a2540", margin: 0 },
-  subtitle: { fontSize: 13, color: "#6b7280", marginTop: 4 },
+  head: {
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    marginBottom: 36,
+    gap: 20,
+  },
+  eyebrow: {
+    fontSize: 10,
+    letterSpacing: "0.5em",
+    color: colors.bronze,
+    textTransform: "uppercase",
+    marginBottom: 12,
+    fontWeight: 500,
+  },
+  title: {
+    fontSize: 44,
+    fontWeight: 400,
+    color: colors.textPrimary,
+    margin: 0,
+    lineHeight: 1,
+    letterSpacing: "-0.02em",
+  },
+  subtitle: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 10,
+    lineHeight: 1.6,
+    maxWidth: 560,
+  },
   liveTag: {
     display: "flex",
     alignItems: "center",
-    gap: 6,
-    fontSize: 12,
-    fontWeight: 600,
-    color: "#16a34a",
-    background: "#dcfce7",
-    padding: "5px 12px",
-    borderRadius: 20,
+    gap: 8,
+    fontSize: 10,
+    fontWeight: 500,
+    color: colors.success,
+    border: `1px solid ${colors.success}`,
+    padding: "6px 14px",
+    letterSpacing: "0.4em",
     flexShrink: 0,
+    background: colors.successBg,
   },
-  liveDot: { width: 7, height: 7, borderRadius: "50%", background: "#22c55e", animation: "pulse 2s infinite" },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: "50%",
+    background: colors.success,
+    boxShadow: `0 0 8px ${colors.success}`,
+    animation: "pulse 2s infinite",
+  },
 
-  statRow: { display: "flex", gap: 12, marginBottom: 22 },
+  statRow: { display: "flex", gap: 16, marginBottom: 28 },
   stat: {
     flex: 1,
-    background: "#fff",
-    borderRadius: 14,
-    padding: "16px 18px",
-    border: "1px solid #eef0f3",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+    background: colors.surface,
+    padding: "24px 22px",
+    border: `1px solid ${colors.border}`,
   },
-  statValue: { fontSize: 22, fontWeight: 700, color: "#0a2540" },
-  statLabel: { fontSize: 12, color: "#9ca3af", marginTop: 2, textTransform: "uppercase", letterSpacing: "0.4px" },
+  statValue: {
+    fontSize: 40,
+    fontWeight: 400,
+    color: colors.textPrimary,
+    lineHeight: 1,
+    letterSpacing: "-0.02em",
+  },
+  statLabel: {
+    fontSize: 10,
+    color: colors.bronze,
+    marginTop: 10,
+    textTransform: "uppercase",
+    letterSpacing: "0.4em",
+  },
 
   funnel: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    background: "#fff",
-    borderRadius: 14,
-    padding: "18px 16px",
-    border: "1px solid #eef0f3",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-    marginBottom: 24,
+    background: colors.surface,
+    padding: "22px 18px",
+    border: `1px solid ${colors.border}`,
+    marginBottom: 44,
+    position: "relative",
   },
   funnelStage: { position: "relative", flex: 1, textAlign: "center" },
-  funnelIcon: { fontSize: 20 },
-  funnelCount: { fontSize: 20, fontWeight: 700, color: "#0a2540", marginTop: 2 },
-  funnelLabel: { fontSize: 10.5, color: "#6b7280", marginTop: 2, lineHeight: 1.3 },
+  funnelIcon: { fontSize: 18, opacity: 0.85 },
+  funnelCount: {
+    fontSize: 24,
+    fontWeight: 400,
+    color: colors.textPrimary,
+    marginTop: 4,
+  },
+  funnelLabel: {
+    fontSize: 9.5,
+    color: colors.textMuted,
+    marginTop: 4,
+    textTransform: "uppercase",
+    letterSpacing: "0.25em",
+  },
   funnelArrow: {
     position: "absolute",
     right: -6,
-    top: 18,
-    color: "#d1d5db",
-    fontSize: 16,
+    top: 20,
+    color: colors.bronzeDeep,
+    fontSize: 14,
   },
 
-  list: { display: "flex", flexDirection: "column", gap: 12 },
+  sectionLabel: {
+    fontSize: 10,
+    letterSpacing: "0.5em",
+    color: colors.bronze,
+    textTransform: "uppercase",
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottom: `1px solid ${colors.borderSoft}`,
+    fontWeight: 500,
+  },
+
+  list: { display: "flex", flexDirection: "column", gap: 14 },
   card: {
-    background: "#fff",
-    borderRadius: 14,
-    padding: "16px 18px",
-    border: "1px solid #eef0f3",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+    background: colors.surface,
+    padding: "20px 22px",
+    border: `1px solid ${colors.border}`,
+    transition: "border-color 0.25s ease",
   },
-  cardTop: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", cursor: "pointer", gap: 12 },
-  cardClientRow: { display: "flex", alignItems: "center", gap: 8 },
+  cardTop: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    cursor: "pointer",
+    gap: 14,
+  },
+  cardClientRow: { display: "flex", alignItems: "center", gap: 10 },
   cardId: {
+    fontSize: 10,
+    fontWeight: 500,
+    color: colors.bronze,
+    background: "rgba(184,149,106,0.10)",
+    padding: "2px 8px",
+    letterSpacing: "0.15em",
+    border: `1px solid ${colors.border}`,
+  },
+  cardClient: {
+    fontFamily: '"Cormorant Garamond", serif',
+    fontSize: 22,
+    fontWeight: 500,
+    color: colors.textPrimary,
+    letterSpacing: "0.01em",
+  },
+  cardProperty: { fontSize: 13, color: colors.textSecondary, marginTop: 4, lineHeight: 1.5 },
+  cardMeta: {
     fontSize: 11,
-    fontWeight: 700,
-    color: "#7c3aed",
-    background: "#f3e8ff",
-    padding: "1px 7px",
-    borderRadius: 6,
+    color: colors.textMuted,
+    marginTop: 4,
+    letterSpacing: "0.05em",
   },
-  cardClient: { fontSize: 15, fontWeight: 600, color: "#0a2540" },
-  cardProperty: { fontSize: 13, color: "#374151", marginTop: 3 },
-  cardMeta: { fontSize: 12, color: "#9ca3af", marginTop: 2 },
-  cardRight: { display: "flex", alignItems: "center", gap: 10, flexShrink: 0 },
+  dot: { color: colors.bronzeDeep, margin: "0 4px" },
+  cardRight: { display: "flex", alignItems: "center", gap: 12, flexShrink: 0 },
   stageBadge: {
-    fontSize: 12,
-    fontWeight: 600,
-    color: "#0a3d7a",
-    background: "#eef4ff",
-    padding: "5px 10px",
-    borderRadius: 20,
+    fontSize: 11,
+    fontWeight: 500,
+    color: colors.bronzeLight,
+    background: "rgba(184,149,106,0.10)",
+    padding: "6px 12px",
+    border: `1px solid ${colors.border}`,
     whiteSpace: "nowrap",
+    letterSpacing: "0.05em",
   },
-  stageBadgeDone: { color: "#16a34a", background: "#dcfce7" },
-  chevron: { fontSize: 10, color: "#9ca3af" },
+  stageBadgeDone: {
+    color: colors.success,
+    background: colors.successBg,
+    borderColor: colors.success,
+  },
+  chevron: {
+    fontSize: 11,
+    color: colors.bronze,
+    transition: "transform 0.25s ease",
+    display: "inline-block",
+  },
 
-  miniTrack: { position: "relative", height: 6, borderRadius: 6, background: "#eef0f3", margin: "16px 4px 0" },
-  miniFill: { position: "absolute", left: 0, top: 0, height: "100%", borderRadius: 6, transition: "width 0.4s ease" },
+  miniTrack: {
+    position: "relative",
+    height: 1,
+    background: colors.border,
+    margin: "20px 4px 0",
+  },
+  miniFill: {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    height: "100%",
+    transition: "width 0.4s ease",
+  },
   miniNode: {
     position: "absolute",
     top: "50%",
-    width: 11,
-    height: 11,
+    width: 9,
+    height: 9,
     borderRadius: "50%",
-    border: "2px solid #fff",
+    border: "1px solid #0a0807",
     transform: "translate(-50%, -50%)",
+    transition: "background 0.3s ease, box-shadow 0.3s ease",
   },
 
-  nextRow: { display: "flex", alignItems: "center", gap: 8, marginTop: 14, flexWrap: "wrap" },
-  nextLabel: { fontSize: 11, fontWeight: 700, color: "#9ca3af", textTransform: "uppercase" },
-  nextText: { fontSize: 13, color: "#374151" },
-  updated: { fontSize: 11, color: "#9ca3af", marginLeft: "auto" },
+  nextRow: { display: "flex", alignItems: "center", gap: 10, marginTop: 18, flexWrap: "wrap" },
+  nextLabel: {
+    fontSize: 9,
+    fontWeight: 500,
+    color: colors.bronze,
+    textTransform: "uppercase",
+    letterSpacing: "0.4em",
+  },
+  nextText: { fontSize: 12.5, color: colors.textSecondary, letterSpacing: "0.01em" },
+  updated: {
+    fontSize: 10,
+    color: colors.textMuted,
+    marginLeft: "auto",
+    letterSpacing: "0.05em",
+  },
 
-  timeline: { marginTop: 16, paddingTop: 14, borderTop: "1px dashed #e5e7eb", display: "flex", flexDirection: "column", gap: 12 },
-  tlRow: { display: "flex", gap: 10, alignItems: "flex-start" },
-  tlDot: { width: 8, height: 8, borderRadius: "50%", background: "#0a3d7a", marginTop: 5, flexShrink: 0 },
-  tlStage: { fontSize: 13, fontWeight: 600, color: "#0a2540", display: "flex", alignItems: "center", gap: 8 },
-  tlDate: { fontSize: 11, color: "#9ca3af", fontWeight: 400 },
-  tlNote: { fontSize: 12.5, color: "#6b7280", marginTop: 2, lineHeight: 1.5 },
+  timeline: {
+    marginTop: 22,
+    paddingTop: 18,
+    borderTop: `1px dashed ${colors.border}`,
+    display: "flex",
+    flexDirection: "column",
+    gap: 14,
+  },
+  tlRow: { display: "flex", gap: 12, alignItems: "flex-start" },
+  tlDot: {
+    width: 6,
+    height: 6,
+    borderRadius: "50%",
+    background: colors.bronze,
+    marginTop: 7,
+    flexShrink: 0,
+    boxShadow: "0 0 6px rgba(184,149,106,0.5)",
+  },
+  tlStage: {
+    fontSize: 13,
+    fontWeight: 500,
+    color: colors.textPrimary,
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+  },
+  tlDate: { fontSize: 10, color: colors.bronze, letterSpacing: "0.15em" },
+  tlNote: {
+    fontSize: 12.5,
+    color: colors.textSecondary,
+    marginTop: 4,
+    lineHeight: 1.6,
+  },
 
   footnote: {
-    marginTop: 24,
-    fontSize: 12,
-    color: "#9ca3af",
-    lineHeight: 1.6,
-    background: "#fff",
-    border: "1px solid #eef0f3",
-    borderRadius: 12,
-    padding: "14px 16px",
+    marginTop: 36,
+    fontSize: 11,
+    color: colors.textMuted,
+    lineHeight: 1.7,
+    background: colors.surface,
+    border: `1px solid ${colors.borderSoft}`,
+    padding: "14px 18px",
+    letterSpacing: "0.02em",
   },
 };
-
-// Pulse keyframes (shared)
-if (typeof document !== "undefined" && !document.getElementById("dt-pulse")) {
-  const styleTag = document.createElement("style");
-  styleTag.id = "dt-pulse";
-  styleTag.textContent = `
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.35; }
-    }
-  `;
-  document.head.appendChild(styleTag);
-}

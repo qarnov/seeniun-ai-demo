@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { colors, gradients } from "../theme";
 
 // ── API call ───────────────────────────────────────────────────────────────
 
@@ -22,8 +23,6 @@ const OPENERS = [
   "I'm just exploring for now",
 ];
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
 function formatTime(d) {
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
@@ -37,15 +36,16 @@ function Avatar({ initials, size = 32 }) {
         width: size,
         height: size,
         borderRadius: "50%",
-        background: "linear-gradient(135deg, #7c3aed, #db2777)",
-        color: "#fff",
+        background: gradients.bronze,
+        color: "#0a0807",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        fontSize: size * 0.38,
-        fontWeight: 700,
+        fontSize: size * 0.4,
+        fontWeight: 600,
         flexShrink: 0,
         letterSpacing: "-0.5px",
+        boxShadow: "0 0 14px rgba(184,149,106,0.35)",
       }}
     >
       {initials}
@@ -98,8 +98,8 @@ function CaptureRow({ label, value }) {
       </span>
       <div style={styles.captureBody}>
         <div style={styles.captureLabel}>{label}</div>
-        <div style={{ ...styles.captureValue, color: done ? "#0a2540" : "#9ca3af" }}>
-          {value || "Not captured yet"}
+        <div style={{ ...styles.captureValue, color: done ? colors.textPrimary : colors.textMuted }}>
+          {value || "Awaiting answer"}
         </div>
       </div>
     </div>
@@ -114,7 +114,7 @@ export default function LeadQualifier() {
       id: 0,
       role: "bot",
       text:
-        "Hi! I'm Sara from Seeniun Properties 👋\n\nI'll ask you a couple of quick questions to match you with the right Dubai investment — then book you a call with one of our senior advisors.\n\nTo start: what are you looking to invest in?",
+        "Welcome — I'm Sara from Seeniun Properties.\n\nI'll ask a few quick questions to match you with the right Dubai investment, then book a call with one of our senior advisors.\n\nTo start: what are you looking to invest in?",
       time: formatTime(new Date()),
     },
   ]);
@@ -189,15 +189,17 @@ export default function LeadQualifier() {
       {/* ── Chat column ── */}
       <div style={styles.container}>
         <div style={styles.chatHeader}>
-          <Avatar initials="S" size={40} />
+          <Avatar initials="S" size={42} />
           <div>
-            <div style={styles.chatName}>Sara · Lead Qualifier</div>
+            <div style={styles.chatName}>
+              Sara <span style={styles.chatRole}>· Lead Qualifier</span>
+            </div>
             <div style={styles.chatStatus}>
               <span style={styles.onlineDot} />
-              Qualifies investors 24/7 — never miss a lead
+              Qualifies investors 24/7 — never misses a lead
             </div>
           </div>
-          <div style={styles.headerRight}>🎯 AI Qualification</div>
+          <div style={styles.headerRight}>AI Qualification</div>
         </div>
 
         <div style={styles.messageArea}>
@@ -211,10 +213,22 @@ export default function LeadQualifier() {
 
         {messages.length <= 1 && !loading && (
           <div style={styles.suggestions}>
-            <div style={styles.suggestionsLabel}>Quick start:</div>
+            <div style={styles.suggestionsLabel}>Quick start</div>
             <div style={styles.chips}>
               {OPENERS.map((q) => (
-                <button key={q} onClick={() => handleSend(q)} style={styles.chip}>
+                <button
+                  key={q}
+                  onClick={() => handleSend(q)}
+                  style={styles.chip}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = colors.bronze;
+                    e.currentTarget.style.color = colors.champagne;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = colors.border;
+                    e.currentTarget.style.color = colors.textSecondary;
+                  }}
+                >
                   {q}
                 </button>
               ))}
@@ -253,7 +267,7 @@ export default function LeadQualifier() {
       {/* ── Qualification panel ── */}
       <aside style={styles.panel}>
         <div style={styles.panelHeader}>
-          <div style={styles.panelTitle}>Qualification Progress</div>
+          <div style={styles.panelTitle}>Qualification</div>
           <div style={styles.progressPill}>{progress}/3</div>
         </div>
 
@@ -269,21 +283,21 @@ export default function LeadQualifier() {
 
         {qualified ? (
           <div style={styles.bookingCard}>
-            <div style={styles.bookingIcon}>✅</div>
-            <div style={styles.bookingTitle}>Lead Qualified!</div>
+            <div style={styles.bookingIcon}>✦</div>
+            <div style={styles.bookingTitle}>Lead Qualified</div>
             <div style={styles.bookingText}>
               This investor is ready for a senior advisor. Book the consultation now.
             </div>
             <a href={bookingUrl} target="_blank" rel="noreferrer" style={styles.bookingBtn}>
-              📅 Book Consultation Call
+              Book Consultation Call →
             </a>
             <div style={styles.bookingNote}>
-              In production this fires a CRM record + Calendly invite automatically.
+              In production, this fires a CRM record + Calendly invite automatically.
             </div>
           </div>
         ) : (
           <div style={styles.hintCard}>
-            <div style={styles.hintTitle}>How this saves the broker time</div>
+            <div style={styles.hintTitle}>Why this saves brokers time</div>
             <div style={styles.hintText}>
               Sara captures budget, area and timeline from every after-hours enquiry — so the team
               only ever calls pre-qualified investors. No lead slips through the cracks.
@@ -298,163 +312,235 @@ export default function LeadQualifier() {
 // ── Styles ─────────────────────────────────────────────────────────────────
 
 const styles = {
-  layout: { flex: 1, display: "flex", overflow: "hidden", background: "#f0f2f5" },
-  container: { flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 },
+  layout: { flex: 1, display: "flex", overflow: "hidden", background: colors.black },
+  container: {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+    minWidth: 0,
+  },
   chatHeader: {
     display: "flex",
     alignItems: "center",
-    gap: 12,
-    padding: "12px 20px",
-    background: "#fff",
-    borderBottom: "1px solid #e9ecef",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+    gap: 14,
+    padding: "14px 22px",
+    background: colors.ink,
+    borderBottom: `1px solid ${colors.border}`,
     flexShrink: 0,
   },
-  chatName: { fontWeight: 600, fontSize: 15, color: "#0a2540" },
-  chatStatus: { display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "#6b7280", marginTop: 2 },
-  onlineDot: { width: 7, height: 7, borderRadius: "50%", background: "#22c55e", display: "inline-block" },
+  chatName: {
+    fontFamily: '"Cormorant Garamond", serif',
+    fontWeight: 500,
+    fontSize: 22,
+    color: colors.textPrimary,
+  },
+  chatRole: {
+    fontFamily: '"Inter", sans-serif',
+    fontSize: 12,
+    color: colors.bronze,
+    letterSpacing: "0.2em",
+    textTransform: "uppercase",
+    marginLeft: 6,
+  },
+  chatStatus: {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    fontSize: 11,
+    color: colors.textMuted,
+    marginTop: 4,
+    letterSpacing: "0.05em",
+  },
+  onlineDot: {
+    width: 6,
+    height: 6,
+    borderRadius: "50%",
+    background: colors.success,
+    boxShadow: `0 0 8px ${colors.success}`,
+    display: "inline-block",
+  },
   headerRight: {
     marginLeft: "auto",
-    fontSize: 11,
-    color: "#9ca3af",
-    background: "#f9fafb",
-    padding: "4px 10px",
-    borderRadius: 20,
-    border: "1px solid #e5e7eb",
+    fontSize: 10,
+    color: colors.bronze,
+    background: "rgba(184,149,106,0.08)",
+    padding: "5px 12px",
+    border: `1px solid ${colors.border}`,
+    letterSpacing: "0.25em",
+    textTransform: "uppercase",
   },
   messageArea: {
     flex: 1,
     overflowY: "auto",
-    padding: "20px 16px",
+    padding: "24px 20px",
     display: "flex",
     flexDirection: "column",
-    gap: 10,
+    gap: 12,
+    background:
+      "radial-gradient(ellipse at top, rgba(184,149,106,0.04) 0%, rgba(0,0,0,0) 50%), " +
+      colors.black,
   },
-  msgRow: { display: "flex", alignItems: "flex-end", gap: 8 },
+  msgRow: { display: "flex", alignItems: "flex-end", gap: 10 },
   bubble: {
-    maxWidth: "75%",
-    padding: "10px 14px",
-    borderRadius: 18,
+    maxWidth: "78%",
+    padding: "12px 16px",
+    borderRadius: 4,
     fontSize: 14,
-    lineHeight: 1.55,
+    lineHeight: 1.65,
     wordBreak: "break-word",
-    boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
   },
   bubbleUser: {
-    background: "linear-gradient(135deg, #7c3aed, #db2777)",
-    color: "#fff",
-    borderBottomRightRadius: 4,
+    background: gradients.bronze,
+    color: "#0a0807",
+    fontWeight: 500,
   },
-  bubbleBot: { background: "#fff", color: "#1a1a2e", borderBottomLeftRadius: 4, border: "1px solid #f0f0f0" },
-  timestamp: { fontSize: 10, opacity: 0.55, marginTop: 4 },
+  bubbleBot: {
+    background: colors.surface,
+    color: colors.textPrimary,
+    border: `1px solid ${colors.border}`,
+  },
+  timestamp: { fontSize: 10, opacity: 0.55, marginTop: 6, letterSpacing: "0.05em" },
   dots: { display: "flex", gap: 4, padding: "2px 0" },
-  dot: { width: 8, height: 8, borderRadius: "50%", background: "#cbd5e1", display: "inline-block", animation: "bounce 1.2s infinite ease-in-out" },
+  dot: {
+    width: 7,
+    height: 7,
+    borderRadius: "50%",
+    background: colors.bronze,
+    display: "inline-block",
+    animation: "bounce 1.2s infinite ease-in-out",
+  },
   errorBanner: {
-    background: "#fef2f2",
-    border: "1px solid #fecaca",
-    color: "#dc2626",
-    borderRadius: 10,
+    background: colors.dangerBg,
+    border: `1px solid ${colors.danger}`,
+    color: colors.danger,
     padding: "10px 14px",
     fontSize: 13,
     textAlign: "center",
   },
-  suggestions: { padding: "12px 16px", background: "#fff", borderTop: "1px solid #e9ecef", flexShrink: 0 },
-  suggestionsLabel: {
-    fontSize: 11,
-    fontWeight: 600,
-    color: "#9ca3af",
-    textTransform: "uppercase",
-    letterSpacing: "0.5px",
-    marginBottom: 8,
+  suggestions: {
+    padding: "16px 20px",
+    background: colors.ink,
+    borderTop: `1px solid ${colors.border}`,
+    flexShrink: 0,
   },
-  chips: { display: "flex", flexWrap: "wrap", gap: 6 },
+  suggestionsLabel: {
+    fontSize: 10,
+    fontWeight: 500,
+    color: colors.bronze,
+    textTransform: "uppercase",
+    letterSpacing: "0.4em",
+    marginBottom: 12,
+  },
+  chips: { display: "flex", flexWrap: "wrap", gap: 8 },
   chip: {
     fontSize: 12,
-    padding: "6px 12px",
-    borderRadius: 16,
-    border: "1px solid #d1d5db",
-    background: "#fff",
-    color: "#374151",
+    padding: "8px 14px",
+    borderRadius: 0,
+    border: `1px solid ${colors.border}`,
+    background: "transparent",
+    color: colors.textSecondary,
     cursor: "pointer",
     fontFamily: "inherit",
+    transition: "all 0.2s ease",
   },
   inputBar: {
     display: "flex",
     alignItems: "flex-end",
-    gap: 10,
-    padding: "12px 16px",
-    background: "#fff",
-    borderTop: "1px solid #e9ecef",
+    gap: 12,
+    padding: "16px 20px",
+    background: colors.ink,
+    borderTop: `1px solid ${colors.border}`,
     flexShrink: 0,
   },
   textarea: {
     flex: 1,
-    padding: "10px 14px",
-    borderRadius: 24,
-    border: "1px solid #d1d5db",
+    padding: "12px 16px",
+    borderRadius: 0,
+    border: `1px solid ${colors.border}`,
     outline: "none",
     fontSize: 14,
     fontFamily: "inherit",
     resize: "none",
     lineHeight: 1.5,
-    background: "#f9fafb",
-    color: "#111827",
+    background: colors.black,
+    color: colors.textPrimary,
   },
   sendBtn: {
     width: 44,
     height: 44,
-    borderRadius: "50%",
+    borderRadius: 0,
     border: "none",
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
-    transition: "all 0.15s",
+    transition: "all 0.2s",
   },
   sendBtnActive: {
-    background: "linear-gradient(135deg, #7c3aed, #db2777)",
-    color: "#fff",
-    boxShadow: "0 2px 8px rgba(124,58,237,0.35)",
+    background: gradients.bronze,
+    color: "#0a0807",
+    boxShadow: "0 0 20px rgba(184,149,106,0.35)",
   },
-  sendBtnDisabled: { background: "#e5e7eb", color: "#9ca3af", cursor: "not-allowed" },
+  sendBtnDisabled: {
+    background: colors.surface,
+    color: colors.textMuted,
+    cursor: "not-allowed",
+    border: `1px solid ${colors.border}`,
+  },
 
-  // Panel
+  // ── Panel ─────────────────────────────────────────────────────────────
   panel: {
-    width: 300,
+    width: 320,
     flexShrink: 0,
-    background: "#fff",
-    borderLeft: "1px solid #e9ecef",
-    padding: "20px 18px",
+    background: colors.ink,
+    borderLeft: `1px solid ${colors.border}`,
+    padding: "26px 22px",
     display: "flex",
     flexDirection: "column",
     overflowY: "auto",
   },
-  panelHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 },
-  panelTitle: { fontSize: 13, fontWeight: 700, color: "#0a2540", textTransform: "uppercase", letterSpacing: "0.5px" },
-  progressPill: {
-    fontSize: 12,
-    fontWeight: 700,
-    color: "#7c3aed",
-    background: "#f3e8ff",
-    padding: "2px 10px",
-    borderRadius: 20,
+  panelHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 18,
   },
-  progressBarTrack: { height: 6, borderRadius: 6, background: "#eef0f3", overflow: "hidden", marginBottom: 20 },
+  panelTitle: {
+    fontSize: 11,
+    fontWeight: 500,
+    color: colors.bronze,
+    textTransform: "uppercase",
+    letterSpacing: "0.5em",
+  },
+  progressPill: {
+    fontFamily: '"Cormorant Garamond", serif',
+    fontSize: 18,
+    color: colors.champagne,
+    fontWeight: 500,
+  },
+  progressBarTrack: {
+    height: 1,
+    background: colors.border,
+    overflow: "hidden",
+    marginBottom: 28,
+  },
   progressBarFill: {
     height: "100%",
-    borderRadius: 6,
-    background: "linear-gradient(90deg, #7c3aed, #db2777)",
-    transition: "width 0.4s ease",
+    background: gradients.bronze,
+    boxShadow: "0 0 10px rgba(184,149,106,0.5)",
+    transition: "width 0.5s ease",
   },
-  captureList: { display: "flex", flexDirection: "column", gap: 12, marginBottom: 22 },
-  captureRow: { display: "flex", gap: 10, alignItems: "flex-start" },
+  captureList: { display: "flex", flexDirection: "column", gap: 18, marginBottom: 28 },
+  captureRow: { display: "flex", gap: 12, alignItems: "flex-start" },
   captureCheck: {
     width: 22,
     height: 22,
     borderRadius: "50%",
-    border: "2px solid #e5e7eb",
-    color: "#fff",
+    border: `1px solid ${colors.border}`,
+    background: "transparent",
+    color: "#0a0807",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -462,49 +548,83 @@ const styles = {
     fontWeight: 700,
     flexShrink: 0,
     marginTop: 1,
+    transition: "all 0.3s ease",
   },
-  captureCheckDone: { background: "#22c55e", borderColor: "#22c55e" },
+  captureCheckDone: {
+    background: gradients.bronze,
+    borderColor: colors.bronze,
+    boxShadow: "0 0 10px rgba(184,149,106,0.4)",
+  },
   captureBody: { minWidth: 0 },
-  captureLabel: { fontSize: 11, color: "#9ca3af", textTransform: "uppercase", letterSpacing: "0.4px", fontWeight: 600 },
-  captureValue: { fontSize: 14, fontWeight: 500, marginTop: 1, wordBreak: "break-word" },
+  captureLabel: {
+    fontSize: 10,
+    color: colors.bronze,
+    textTransform: "uppercase",
+    letterSpacing: "0.4em",
+    fontWeight: 500,
+  },
+  captureValue: {
+    fontSize: 14,
+    fontWeight: 400,
+    marginTop: 4,
+    wordBreak: "break-word",
+    letterSpacing: "0.01em",
+  },
 
-  hintCard: { marginTop: "auto", background: "#f9fafb", border: "1px solid #eef0f3", borderRadius: 12, padding: 14 },
-  hintTitle: { fontSize: 12, fontWeight: 700, color: "#374151", marginBottom: 6 },
-  hintText: { fontSize: 12, color: "#6b7280", lineHeight: 1.6 },
+  hintCard: {
+    marginTop: "auto",
+    background: "rgba(184,149,106,0.05)",
+    border: `1px solid ${colors.borderSoft}`,
+    padding: 16,
+  },
+  hintTitle: {
+    fontSize: 11,
+    fontWeight: 500,
+    color: colors.bronze,
+    marginBottom: 8,
+    letterSpacing: "0.3em",
+    textTransform: "uppercase",
+  },
+  hintText: { fontSize: 12, color: colors.textSecondary, lineHeight: 1.7 },
 
   bookingCard: {
-    background: "linear-gradient(135deg, #f3e8ff, #fce7f3)",
-    border: "1px solid #e9d5ff",
-    borderRadius: 16,
-    padding: "22px 18px",
+    background: gradients.bronzeSoft,
+    border: `1px solid ${colors.bronze}`,
+    padding: "26px 20px",
     textAlign: "center",
   },
-  bookingIcon: { fontSize: 34, marginBottom: 6 },
-  bookingTitle: { fontSize: 17, fontWeight: 700, color: "#0a2540", marginBottom: 6 },
-  bookingText: { fontSize: 13, color: "#6b7280", lineHeight: 1.6, marginBottom: 16 },
+  bookingIcon: { fontSize: 24, color: colors.bronze, marginBottom: 8 },
+  bookingTitle: {
+    fontFamily: '"Cormorant Garamond", serif',
+    fontSize: 22,
+    fontWeight: 500,
+    color: colors.textPrimary,
+    marginBottom: 8,
+    letterSpacing: "0.02em",
+  },
+  bookingText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    lineHeight: 1.7,
+    marginBottom: 18,
+  },
   bookingBtn: {
     display: "block",
-    background: "linear-gradient(135deg, #7c3aed, #db2777)",
-    color: "#fff",
+    background: gradients.bronze,
+    color: "#0a0807",
     textDecoration: "none",
     fontWeight: 600,
-    fontSize: 14,
-    padding: "11px 16px",
-    borderRadius: 24,
-    boxShadow: "0 2px 10px rgba(124,58,237,0.35)",
+    fontSize: 12,
+    padding: "13px 18px",
+    letterSpacing: "0.25em",
+    textTransform: "uppercase",
+    boxShadow: "0 0 20px rgba(184,149,106,0.4)",
   },
-  bookingNote: { fontSize: 11, color: "#9ca3af", marginTop: 12, lineHeight: 1.5 },
+  bookingNote: {
+    fontSize: 10,
+    color: colors.textMuted,
+    marginTop: 14,
+    lineHeight: 1.6,
+    letterSpacing: "0.08em",
+  },
 };
-
-// Inject keyframes for typing dots (shared name with the advisor module is fine)
-if (typeof document !== "undefined" && !document.getElementById("lq-bounce")) {
-  const styleTag = document.createElement("style");
-  styleTag.id = "lq-bounce";
-  styleTag.textContent = `
-    @keyframes bounce {
-      0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
-      40% { transform: scale(1.2); opacity: 1; }
-    }
-  `;
-  document.head.appendChild(styleTag);
-}

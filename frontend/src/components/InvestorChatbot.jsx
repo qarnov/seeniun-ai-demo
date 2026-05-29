@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { colors, gradients } from "../theme";
 
 // ── Suggested questions ────────────────────────────────────────────────────
 
@@ -31,22 +32,23 @@ async function sendMessage(message, history) {
 
 // ── Components ─────────────────────────────────────────────────────────────
 
-function Avatar({ src, initials, size = 32 }) {
+function Avatar({ initials, size = 32 }) {
   return (
     <div
       style={{
         width: size,
         height: size,
         borderRadius: "50%",
-        background: "linear-gradient(135deg, #0a2540, #1a6b5e)",
-        color: "#fff",
+        background: gradients.bronze,
+        color: "#0a0807",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        fontSize: size * 0.38,
-        fontWeight: 700,
+        fontSize: size * 0.4,
+        fontWeight: 600,
         flexShrink: 0,
         letterSpacing: "-0.5px",
+        boxShadow: "0 0 14px rgba(184,149,106,0.35)",
       }}
     >
       {initials}
@@ -61,13 +63,7 @@ function TypingIndicator() {
       <div style={{ ...styles.bubble, ...styles.bubbleBot }}>
         <div style={styles.dots}>
           {[0, 1, 2].map((i) => (
-            <span
-              key={i}
-              style={{
-                ...styles.dot,
-                animationDelay: `${i * 0.2}s`,
-              }}
-            />
+            <span key={i} style={{ ...styles.dot, animationDelay: `${i * 0.2}s` }} />
           ))}
         </div>
       </div>
@@ -78,31 +74,16 @@ function TypingIndicator() {
 function Message({ msg }) {
   const isUser = msg.role === "user";
   return (
-    <div
-      style={{
-        ...styles.msgRow,
-        flexDirection: isUser ? "row-reverse" : "row",
-      }}
-    >
+    <div style={{ ...styles.msgRow, flexDirection: isUser ? "row-reverse" : "row" }}>
       {!isUser && <Avatar initials="M" />}
-      <div
-        style={{
-          ...styles.bubble,
-          ...(isUser ? styles.bubbleUser : styles.bubbleBot),
-        }}
-      >
-        {msg.text.split("\n").map((line, i) => (
+      <div style={{ ...styles.bubble, ...(isUser ? styles.bubbleUser : styles.bubbleBot) }}>
+        {msg.text.split("\n").map((line, i, arr) => (
           <span key={i}>
             {line}
-            {i < msg.text.split("\n").length - 1 && <br />}
+            {i < arr.length - 1 && <br />}
           </span>
         ))}
-        <div
-          style={{
-            ...styles.timestamp,
-            textAlign: isUser ? "right" : "left",
-          }}
-        >
+        <div style={{ ...styles.timestamp, textAlign: isUser ? "right" : "left" }}>
           {msg.time}
           {isUser && " ✓✓"}
         </div>
@@ -118,7 +99,8 @@ export default function InvestorChatbot() {
     {
       id: 0,
       role: "bot",
-      text: "Hi! I'm Maya, your Seeniun Properties AI advisor 👋\n\nI can answer any question about investing in Dubai real estate — fees, Golden Visa, off-plan process, yields by area, and more.\n\nWhat would you like to know?",
+      text:
+        "Welcome. I'm Maya, your Seeniun Properties AI advisor.\n\nAsk me anything about investing in Dubai real estate — DLD fees, Golden Visa thresholds, off-plan process, area-by-area ROI.\n\nWhere would you like to begin?",
       time: formatTime(new Date()),
     },
   ]);
@@ -192,52 +174,46 @@ export default function InvestorChatbot() {
 
   return (
     <div style={styles.container}>
-      {/* ── Chat header ── */}
       <div style={styles.chatHeader}>
-        <Avatar initials="M" size={40} />
+        <Avatar initials="M" size={42} />
         <div>
-          <div style={styles.chatName}>Maya · AI Advisor</div>
+          <div style={styles.chatName}>
+            Maya <span style={styles.chatRole}>· Investor Advisor</span>
+          </div>
           <div style={styles.chatStatus}>
             <span style={styles.onlineDot} />
-            Seeniun Properties · Dubai Real Estate
+            RAG-grounded on Seeniun's Dubai SOP
           </div>
         </div>
-        <div style={styles.headerRight}>🔒 Powered by RAG + FAISS</div>
+        <div style={styles.headerRight}>FAISS · Gemini 2.5</div>
       </div>
 
-      {/* ── Message list ── */}
       <div style={styles.messageArea}>
-        {/* Watermark background */}
-        <div style={styles.watermark}>🏙️</div>
-
         {messages.map((msg) => (
           <Message key={msg.id} msg={msg} />
         ))}
         {loading && <TypingIndicator />}
-        {error && (
-          <div style={styles.errorBanner}>
-            ⚠️ {error}
-          </div>
-        )}
+        {error && <div style={styles.errorBanner}>⚠️ {error}</div>}
         <div ref={bottomRef} />
       </div>
 
-      {/* ── Suggestion chips ── */}
       {messages.length <= 1 && !loading && (
         <div style={styles.suggestions}>
-          <div style={styles.suggestionsLabel}>Try asking:</div>
+          <div style={styles.suggestionsLabel}>Try asking</div>
           <div style={styles.chips}>
             {SUGGESTIONS.map((q) => (
               <button
                 key={q}
                 onClick={() => handleSend(q)}
                 style={styles.chip}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.background = "#e8f0fe")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = "#fff")
-                }
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = colors.bronze;
+                  e.currentTarget.style.color = colors.champagne;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = colors.border;
+                  e.currentTarget.style.color = colors.textSecondary;
+                }}
               >
                 {q}
               </button>
@@ -246,14 +222,13 @@ export default function InvestorChatbot() {
         </div>
       )}
 
-      {/* ── Input bar ── */}
       <div style={styles.inputBar}>
         <textarea
           ref={inputRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKey}
-          placeholder="Ask about DLD fees, Golden Visa, off-plan ROI…"
+          placeholder="Ask Maya about Dubai real estate…"
           rows={1}
           style={styles.textarea}
           disabled={loading}
@@ -263,9 +238,7 @@ export default function InvestorChatbot() {
           disabled={!input.trim() || loading}
           style={{
             ...styles.sendBtn,
-            ...(input.trim() && !loading
-              ? styles.sendBtnActive
-              : styles.sendBtnDisabled),
+            ...(input.trim() && !loading ? styles.sendBtnActive : styles.sendBtnDisabled),
           }}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -285,204 +258,186 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     overflow: "hidden",
-    background: "#f0f2f5",
+    background: colors.black,
+    color: colors.textPrimary,
   },
   chatHeader: {
     display: "flex",
     alignItems: "center",
-    gap: 12,
-    padding: "12px 20px",
-    background: "#fff",
-    borderBottom: "1px solid #e9ecef",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+    gap: 14,
+    padding: "14px 22px",
+    background: colors.ink,
+    borderBottom: `1px solid ${colors.border}`,
     flexShrink: 0,
   },
   chatName: {
-    fontWeight: 600,
-    fontSize: 15,
-    color: "#0a2540",
+    fontFamily: '"Cormorant Garamond", serif',
+    fontWeight: 500,
+    fontSize: 22,
+    color: colors.textPrimary,
+    letterSpacing: "0.01em",
+  },
+  chatRole: {
+    fontFamily: '"Inter", sans-serif',
+    fontSize: 12,
+    color: colors.bronze,
+    letterSpacing: "0.2em",
+    textTransform: "uppercase",
+    marginLeft: 6,
   },
   chatStatus: {
     display: "flex",
     alignItems: "center",
-    gap: 5,
-    fontSize: 12,
-    color: "#6b7280",
-    marginTop: 2,
+    gap: 6,
+    fontSize: 11,
+    color: colors.textMuted,
+    marginTop: 4,
+    letterSpacing: "0.05em",
   },
   onlineDot: {
-    width: 7,
-    height: 7,
+    width: 6,
+    height: 6,
     borderRadius: "50%",
-    background: "#22c55e",
+    background: colors.success,
+    boxShadow: `0 0 8px ${colors.success}`,
     display: "inline-block",
   },
   headerRight: {
     marginLeft: "auto",
-    fontSize: 11,
-    color: "#9ca3af",
-    background: "#f9fafb",
-    padding: "4px 10px",
-    borderRadius: 20,
-    border: "1px solid #e5e7eb",
+    fontSize: 10,
+    color: colors.bronze,
+    background: "rgba(184,149,106,0.08)",
+    padding: "5px 12px",
+    borderRadius: 0,
+    border: `1px solid ${colors.border}`,
+    letterSpacing: "0.25em",
+    textTransform: "uppercase",
   },
   messageArea: {
     flex: 1,
     overflowY: "auto",
-    padding: "20px 16px",
+    padding: "24px 20px",
     display: "flex",
     flexDirection: "column",
-    gap: 10,
-    position: "relative",
+    gap: 12,
+    background:
+      "radial-gradient(ellipse at top, rgba(184,149,106,0.04) 0%, rgba(0,0,0,0) 50%), " +
+      colors.black,
   },
-  watermark: {
-    position: "fixed",
-    bottom: "35%",
-    left: "50%",
-    transform: "translateX(-50%)",
-    fontSize: 120,
-    opacity: 0.04,
-    pointerEvents: "none",
-    userSelect: "none",
-    zIndex: 0,
-  },
-  msgRow: {
-    display: "flex",
-    alignItems: "flex-end",
-    gap: 8,
-    zIndex: 1,
-    position: "relative",
-  },
+  msgRow: { display: "flex", alignItems: "flex-end", gap: 10 },
   bubble: {
-    maxWidth: "70%",
-    padding: "10px 14px",
-    borderRadius: 18,
+    maxWidth: "72%",
+    padding: "12px 16px",
+    borderRadius: 4,
     fontSize: 14,
-    lineHeight: 1.55,
+    lineHeight: 1.65,
     wordBreak: "break-word",
-    boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
   },
   bubbleUser: {
-    background: "linear-gradient(135deg, #0a3d7a, #0a5540)",
-    color: "#fff",
-    borderBottomRightRadius: 4,
+    background: gradients.bronze,
+    color: "#0a0807",
+    fontWeight: 500,
   },
   bubbleBot: {
-    background: "#fff",
-    color: "#1a1a2e",
-    borderBottomLeftRadius: 4,
-    border: "1px solid #f0f0f0",
+    background: colors.surface,
+    color: colors.textPrimary,
+    border: `1px solid ${colors.border}`,
   },
   timestamp: {
     fontSize: 10,
     opacity: 0.55,
-    marginTop: 4,
+    marginTop: 6,
+    letterSpacing: "0.05em",
   },
-  dots: {
-    display: "flex",
-    gap: 4,
-    padding: "2px 0",
-  },
+  dots: { display: "flex", gap: 4, padding: "2px 0" },
   dot: {
-    width: 8,
-    height: 8,
+    width: 7,
+    height: 7,
     borderRadius: "50%",
-    background: "#cbd5e1",
+    background: colors.bronze,
     display: "inline-block",
     animation: "bounce 1.2s infinite ease-in-out",
   },
   errorBanner: {
-    background: "#fef2f2",
-    border: "1px solid #fecaca",
-    color: "#dc2626",
-    borderRadius: 10,
+    background: colors.dangerBg,
+    border: `1px solid ${colors.danger}`,
+    color: colors.danger,
     padding: "10px 14px",
     fontSize: 13,
     textAlign: "center",
+    letterSpacing: "0.05em",
   },
   suggestions: {
-    padding: "12px 16px",
-    background: "#fff",
-    borderTop: "1px solid #e9ecef",
+    padding: "16px 20px",
+    background: colors.ink,
+    borderTop: `1px solid ${colors.border}`,
     flexShrink: 0,
   },
   suggestionsLabel: {
-    fontSize: 11,
-    fontWeight: 600,
-    color: "#9ca3af",
+    fontSize: 10,
+    fontWeight: 500,
+    color: colors.bronze,
     textTransform: "uppercase",
-    letterSpacing: "0.5px",
-    marginBottom: 8,
+    letterSpacing: "0.4em",
+    marginBottom: 12,
   },
-  chips: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 6,
-  },
+  chips: { display: "flex", flexWrap: "wrap", gap: 8 },
   chip: {
     fontSize: 12,
-    padding: "6px 12px",
-    borderRadius: 16,
-    border: "1px solid #d1d5db",
-    background: "#fff",
-    color: "#374151",
+    padding: "8px 14px",
+    borderRadius: 0,
+    border: `1px solid ${colors.border}`,
+    background: "transparent",
+    color: colors.textSecondary,
     cursor: "pointer",
     fontFamily: "inherit",
-    transition: "background 0.15s",
+    transition: "all 0.2s ease",
+    letterSpacing: "0.02em",
   },
   inputBar: {
     display: "flex",
     alignItems: "flex-end",
-    gap: 10,
-    padding: "12px 16px",
-    background: "#fff",
-    borderTop: "1px solid #e9ecef",
+    gap: 12,
+    padding: "16px 20px",
+    background: colors.ink,
+    borderTop: `1px solid ${colors.border}`,
     flexShrink: 0,
   },
   textarea: {
     flex: 1,
-    padding: "10px 14px",
-    borderRadius: 24,
-    border: "1px solid #d1d5db",
+    padding: "12px 16px",
+    borderRadius: 0,
+    border: `1px solid ${colors.border}`,
     outline: "none",
     fontSize: 14,
     fontFamily: "inherit",
     resize: "none",
     lineHeight: 1.5,
-    background: "#f9fafb",
-    color: "#111827",
-    transition: "border-color 0.15s",
+    background: colors.black,
+    color: colors.textPrimary,
+    transition: "border-color 0.2s",
   },
   sendBtn: {
     width: 44,
     height: 44,
-    borderRadius: "50%",
+    borderRadius: 0,
     border: "none",
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
-    transition: "all 0.15s",
+    transition: "all 0.2s",
   },
   sendBtnActive: {
-    background: "linear-gradient(135deg, #0a3d7a, #0a5540)",
-    color: "#fff",
-    boxShadow: "0 2px 8px rgba(10,61,122,0.35)",
+    background: gradients.bronze,
+    color: "#0a0807",
+    boxShadow: "0 0 20px rgba(184,149,106,0.35)",
   },
   sendBtnDisabled: {
-    background: "#e5e7eb",
-    color: "#9ca3af",
+    background: colors.surface,
+    color: colors.textMuted,
     cursor: "not-allowed",
+    border: `1px solid ${colors.border}`,
   },
 };
-
-// Inject keyframes for typing dots
-const styleTag = document.createElement("style");
-styleTag.textContent = `
-  @keyframes bounce {
-    0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
-    40% { transform: scale(1.2); opacity: 1; }
-  }
-`;
-document.head.appendChild(styleTag);
